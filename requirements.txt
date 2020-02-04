@@ -1,0 +1,14 @@
+##### Core scientific packages
+matplotlib==3.1.2
+numpy==1.18.1
+pandas==1.0.0
+
+# Efficient jobs (caching, parallelism, persistence)
+joblib==0.14.1
+
+##### Machine Learning packages
+scikit-learn==0.22.1
+xgboost==0.90
+
+# tqdm displays nice progress bars, ipywidgets for tqdm's notebook support
+tqdm==4.42.0

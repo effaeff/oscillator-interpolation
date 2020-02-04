@@ -1,0 +1,1 @@
+Python project for modeling measured frequency response functions (FRF) of a dynamic system, consisting of a milling machine, spindle and milling tool, based on different poses of the tool. The application would be enabling the capability of conducting predictions of FRFs and, thus, interpolating between measured pose dependent dynamics.
