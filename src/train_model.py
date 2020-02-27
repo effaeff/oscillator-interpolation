@@ -1,4 +1,4 @@
-"""Learning routine to model the similarity between simulation and measured data"""
+"""Learning routine to model the amplitudes of FRFs based on pose and frequency information"""
 import os
 import math
 import numpy as np
