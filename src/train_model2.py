@@ -155,11 +155,11 @@ def main():
     data_dir = '../data/02_processed'
     test_size = 0.1
     cv_folds = 10
-    n_iter_search = 500
+    n_iter_search = 100
     random_seed = 1234
     data = np.load('{}/processed_data.npy'.format(data_dir))
     input_size = 4
-    output_size = 2
+    output_size = 4
 
     # Train/test split
     train, test = train_test_split(data, test_size=test_size, random_state=random_seed)

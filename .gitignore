@@ -26,3 +26,7 @@ auto/
 *main*.pdf
 *main*.abs
 *main*.out
+models/
+output/
+misc.py
+plotter.py

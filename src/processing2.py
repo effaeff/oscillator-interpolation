@@ -8,7 +8,7 @@ import sys
 import pandas as pd
 import numpy as np
 #from tqdm import tqdm
-from plot_frf import plot_frf
+from plot_frf import plot_frf, plot_frf_phase
 import misc
 
 
@@ -26,7 +26,7 @@ def main():
     x_range = (200, 3200, 1000)
     y_range = (0, 0.9, 0.2)
     input_size = 4
-    output_size = 2
+    output_size = 4
 
     # Fetch all filenames for YY FRFs
     filenames = [
@@ -66,8 +66,8 @@ def main():
         
 
         for i in range(int(len(xx_frf)/combine)):
-            xx_frf_n.append((xx_frf[(i*combine) + int(combine/2)-1, 0], np.mean(xx_frf[i*combine : (i+1)*combine, 1])))
-            yy_frf_n.append((yy_frf[(i*combine) + int(combine/2)-1, 0], np.mean(yy_frf[i*combine : (i+1)*combine, 1])))
+            xx_frf_n.append((xx_frf[(i*combine) + int(combine/2)-1, 0], np.mean(xx_frf[i*combine : (i+1)*combine, 1]), np.mean(xx_frf[i*combine : (i+1)*combine, 2])))
+            yy_frf_n.append((yy_frf[(i*combine) + int(combine/2)-1, 0], np.mean(yy_frf[i*combine : (i+1)*combine, 1]), np.mean(yy_frf[i*combine : (i+1)*combine, 2])))
         xx_frf_n = np.asarray(xx_frf_n)
         yy_frf_n = np.asarray(yy_frf_n)
         xx_frf = xx_frf_n
@@ -92,6 +92,17 @@ def main():
                 fontsize
             )
 
+            plot_frf_phase(
+                [xx_frf, yy_frf],
+                plot_dir,
+                x_range,
+                (-180.0, 20.0, 50.0),
+                title,
+                ['XX', 'YY'],
+                figsize,
+                fontsize
+            )
+
         # Use pose and frequency as features and XX/YY amplitudes as targets,
         # but store them for each file separately for reasonable train/test split
         for freq_idx, __ in enumerate(xx_frf):
@@ -102,7 +113,9 @@ def main():
                     b_angle,
                     xx_frf[freq_idx, 0],
                     xx_frf[freq_idx, 1],
-                    yy_frf[freq_idx, 1]
+                    yy_frf[freq_idx, 1],
+                    xx_frf[freq_idx, 2],
+                    yy_frf[freq_idx, 2]
                 ]
             )
 
