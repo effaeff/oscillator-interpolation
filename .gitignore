@@ -1,5 +1,6 @@
 .vscode/
-__pycache__/
+.vim/
+*__pycache__/
 data/
 auto/
 *~
@@ -27,6 +28,6 @@ auto/
 *main*.abs
 *main*.out
 models/
-output/
+results/
 misc.py
 plotter.py
