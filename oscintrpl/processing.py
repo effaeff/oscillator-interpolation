@@ -7,45 +7,42 @@ import os
 import sys
 import pandas as pd
 import numpy as np
-#from tqdm import tqdm
-from plot_frf import plot_frf
+from tqdm import tqdm
+from plotting import plot_frf 
 import misc
+from properties import (
+    data_dir,
+    processed_dir,
+    plot_dir,
+    dark2,
+    delimiter,
+    doe_file,
+    freq_step,
+    freq_steps_aggreg,
+    x_range,
+    input_size,
+    output_size
+)
 
 
-def main():
-    """Main method"""
-    # Definitions of data and plotting properties
-    data_dir = '../data/01_raw'
-    processed_dir = '../data/02_processed'
-    plot_dir = '../figures'
-    delimiter = ' '
-    doe_file = '../data/01_raw/Versuchsplan.xlsx'
-    figsize = (7, 7)
-    fontsize = 14
-    freq_step = 0.25 # Precision of the measurement
-    x_range = (200, 3200, 1000)
-    y_range = (0, 0.9, 0.2)
-    input_size = 4
-    output_size = 2
-
+def processing(store=True, plot=False):
+    """Processing method"""
     # Fetch all filenames for YY FRFs
     filenames = [
         filename for filename in os.listdir(data_dir)
         if filename.endswith('.txt') and filename.split('_')[2] == 'YY'
     ]
-
     # Read poses from design of experiments file
     xls = pd.ExcelFile(doe_file)
-    positions = pd.read_excel(xls, sheetname='positions')
-    doe = pd.read_excel(xls, sheetname='DOE')
+    positions = pd.read_excel(xls, sheet_name='positions')
+    doe = pd.read_excel(xls, sheet_name='DOE')
 
     n_rows = int((x_range[1] - x_range[0]) / freq_step - 1)
-    freq_steps_new = 10
-    combine = int(freq_steps_new/freq_step)
-    n_rows = int(n_rows/combine)
+    aggreg = int(freq_steps_aggreg / freq_step)
+    n_rows = int(n_rows / aggreg)
 
     processed = np.empty((len(filenames), n_rows, input_size + output_size))
-    for file_idx in range(len(filenames)):
+    for file_idx in tqdm(range(len(filenames))):
         filename = filenames[file_idx]
         # Get XX FRF based on filename of XX FRF
         xx_file = filename.split('_')
@@ -60,18 +57,27 @@ def main():
         xx_frf = xx_frf[(np.where((xx_frf[:, 0] > x_range[0]) & (xx_frf[:, 0] < x_range[1])))]
         yy_frf = yy_frf[(np.where((yy_frf[:, 0] > x_range[0]) & (yy_frf[:, 0] < x_range[1])))]
 
-        #get mean in blocks to get frf steps in 10Hz
+        # Get mean in blocks to get frf steps in aggregation period
         xx_frf_n = []
         yy_frf_n = []
-        
 
-        for i in range(int(len(xx_frf)/combine)):
-            xx_frf_n.append((xx_frf[(i*combine) + int(combine/2)-1, 0], np.mean(xx_frf[i*combine : (i+1)*combine, 1])))
-            yy_frf_n.append((yy_frf[(i*combine) + int(combine/2)-1, 0], np.mean(yy_frf[i*combine : (i+1)*combine, 1])))
-        xx_frf_n = np.asarray(xx_frf_n)
-        yy_frf_n = np.asarray(yy_frf_n)
-        xx_frf = xx_frf_n
-        yy_frf = yy_frf_n
+        for i in range(int(len(xx_frf) / aggreg)):
+            xx_frf_n.append(
+                    (
+                        xx_frf[(i * aggreg) + int(aggreg / 2) - 1, 0],
+                        np.mean(xx_frf[i * aggreg : (i + 1) * aggreg, 1]),
+                        np.mean(xx_frf[i * aggreg : (i + 1) * aggreg, 2])
+                    )
+            )
+            yy_frf_n.append(
+                    (
+                        yy_frf[(i * aggreg) + int(aggreg / 2) - 1, 0],
+                        np.mean(yy_frf[i * aggreg : (i + 1) * aggreg, 1]),
+                        np.mean(yy_frf[i * aggreg : (i + 1) * aggreg, 2])
+                    )
+            )
+        xx_frf = np.asarray(xx_frf_n)
+        yy_frf = np.asarray(yy_frf_n)
         # Get pose features
         pos_label = doe.loc[doe['XX_Nr'] == xx_number]['Position'].values[0]
         b_angle = doe.loc[doe['XX_Nr'] == xx_number]['B_angle'].values[0]
@@ -79,20 +85,16 @@ def main():
         title = 'X{}_Y{}_B{}'.format(x_pos, y_pos, b_angle)
 
         # Plot FRF
-        #if len(sys.argv) > 1 and sys.argv[1] == 'plot':
-        if True:
+        if plot:
             plot_frf(
                 [xx_frf, yy_frf],
-                plot_dir,
-                x_range,
-                y_range,
-                title,
                 ['XX', 'YY'],
-                figsize,
-                fontsize
+                [dark2[0], dark2[1]],
+                ['-', '-'],
+                title
             )
 
-        # Use pose and frequency as features and XX/YY amplitudes as targets,
+        # Use pose and frequency as features and XX/YY amplitudes and phases as targets,
         # but store them for each file separately for reasonable train/test split
         for freq_idx, __ in enumerate(xx_frf):
             processed[file_idx, freq_idx] = np.array(
@@ -102,12 +104,13 @@ def main():
                     b_angle,
                     xx_frf[freq_idx, 0],
                     xx_frf[freq_idx, 1],
-                    yy_frf[freq_idx, 1]
+                    yy_frf[freq_idx, 1],
+                    xx_frf[freq_idx, 2],
+                    yy_frf[freq_idx, 2]
                 ]
             )
+    if store:
+        np.save('{}/processed_data.npy'.format(processed_dir), processed)
 
-    np.save('{}/processed_data.npy'.format(processed_dir), processed)
+    return processed
 
-if __name__ == '__main__':
-    misc.to_local_dir('__file__')
-    main()
