@@ -62,8 +62,8 @@ def main():
     misc.to_local_dir(__file__)
     gen_dirs()
     # Definition of data and learning properties
-    data = np.load(f"{processed_dir}/processed_data.npy")
-    # data = processing(store=True, plot=True) 
+    # data = np.load(f"{processed_dir}/processed_data.npy")
+    data = processing(store=True, plot=True) 
 
     # Train/test split
     train_data, test_data = train_test_split(data, test_size=test_size, random_state=random_seed)
