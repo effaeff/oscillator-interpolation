@@ -19,6 +19,7 @@ from properties import (
     doe_file,
     freq_step,
     freq_steps_aggreg,
+    pos_axes,
     x_range,
     input_size,
     output_size
@@ -78,8 +79,8 @@ def processing(store=True, plot=False):
         xx_frf = np.asarray(xx_frf_n)
         yy_frf = np.asarray(yy_frf_n)
         # Get pose features
-        x_pos, y_pos = positions.loc[positions['Label'] == pos_label][['X', 'Y']].values[0]
-        title = 'X{}_Y{}_B{}'.format(x_pos, y_pos, b_angle)
+        x_pos, y_pos = positions.loc[positions['Label'] == pos_label][pos_axes].values[0]
+        title = '{}{}_{}{}_B{}'.format(pos_axes[0], x_pos, pos_axes[1], y_pos, b_angle)
 
         # Plot FRF
         if plot:
