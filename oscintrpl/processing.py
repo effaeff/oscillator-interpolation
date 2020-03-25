@@ -30,12 +30,11 @@ def processing(store=True, plot=False):
     # Fetch all filenames for YY FRFs
     filenames = [
         filename for filename in os.listdir(data_dir)
-        if filename.endswith('.txt') and filename.split('_')[2] == 'YY'
+        if filename.endswith('.txt') and filename.startswith('YY')
     ]
     # Read poses from design of experiments file
     xls = pd.ExcelFile(doe_file)
     positions = pd.read_excel(xls, sheet_name='positions')
-    doe = pd.read_excel(xls, sheet_name='DOE')
 
     n_rows = int((x_range[1] - x_range[0]) / freq_step - 1)
     aggreg = int(freq_steps_aggreg / freq_step)
@@ -46,9 +45,9 @@ def processing(store=True, plot=False):
         filename = filenames[file_idx]
         # Get XX FRF based on filename of XX FRF
         xx_file = filename.split('_')
-        xx_file[2] = 'XX'
-        xx_file[0] = str(int(xx_file[0]) + 48)
-        xx_number = int(xx_file[0])
+        xx_file[0] = 'XX'
+        b_angle = int(os.path.splitext(xx_file[-1][1:])[0])
+        pos_label = xx_file[1]
         xx_file = '_'.join(xx_file)
         # Load data
         yy_frf = np.loadtxt('{}/{}'.format(data_dir, filename), delimiter=delimiter)
@@ -79,8 +78,6 @@ def processing(store=True, plot=False):
         xx_frf = np.asarray(xx_frf_n)
         yy_frf = np.asarray(yy_frf_n)
         # Get pose features
-        pos_label = doe.loc[doe['XX_Nr'] == xx_number]['Position'].values[0]
-        b_angle = doe.loc[doe['XX_Nr'] == xx_number]['B_angle'].values[0]
         x_pos, y_pos = positions.loc[positions['Label'] == pos_label][['X', 'Y']].values[0]
         title = 'X{}_Y{}_B{}'.format(x_pos, y_pos, b_angle)
 
