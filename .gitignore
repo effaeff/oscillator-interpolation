@@ -3,6 +3,7 @@
 *__pycache__/
 data/
 auto/
+output/
 *~
 */.DS_Store
 *.png
