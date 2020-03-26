@@ -32,3 +32,4 @@ models/
 results/
 misc.py
 plotter.py
+out.txt
