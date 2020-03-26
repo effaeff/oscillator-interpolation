@@ -10,6 +10,10 @@ import xgboost as xgb
 from scipy.stats import uniform, randint
 
 
+HELLER = True
+n_iter_search = 2
+freq_steps_aggreg = 10
+
 # Global colors
 dark2 = [(217 / 255, 95 / 255, 2 / 255),
          (27 / 255, 158 / 255, 119 / 255),
@@ -20,25 +24,22 @@ dark2 = [(217 / 255, 95 / 255, 2 / 255),
          (166 / 255, 118 / 255, 29 / 255),
          (102 / 255, 102 / 255, 102 / 255)]
 # Data properties
-data_dir = '../data/01_raw/heller_ft4000'
-# data_dir = '../data/01_raw/dmg_hsc75linear'
+data_dir = '../data/01_raw/heller_ft4000' if HELLER else '../data/01_raw/dmg_hsc75linear'
 processed_dir = '../data/02_processed'
 plot_dir = '../figures'
 model_dir = '../models'
 results_dir = '../results'
-delimiter = ' ' # Heller FT4000
-# delimiter = '\t' # DMG HSC75 Linear
-doe_file = '../data/01_raw/heller_ft4000/doe.xlsx'
-# doe_file = '../data/01_raw/dmg_hsc75linear/doe.xlsx'
-pos_axes = ['X', 'Y'] # Heller FT4000
-# pos_axes = ['Z', 'Y'] # DMG HSC75 Linear
+delimiter = ' ' if HELLER else '\t'
+doe_file = (
+    '../data/01_raw/heller_ft4000/doe.xlsx' if HELLER
+    else '../data/01_raw/dmg_hsc75linear/doe.xlsx'
+)
+pos_axes = ['X', 'Y'] if HELLER else ['Z', 'Y']
 # Plot properties
 figsize = (7, 7)
 fontsize = 14
-freq_step = 0.25 # Precision of the measurement for Heller FT4000
-# freq_step = 0.5 # Precision of the measurement for DMG HSC75 Linear
-freq_steps_aggreg = 10
-x_range = (1000, 3001, 500)
+freq_step = 0.25 if HELLER else 0.5
+x_range = (200, 3201, 1000) if HELLER else (1000, 3001, 500)
 y_range_amp = (0, 0.9, 0.2)
 y_range_phase = (-180.0, 81.0, 50.0)
 # Model properties
@@ -46,7 +47,6 @@ input_size = 4
 output_size = 4
 test_size = 0.1
 cv_folds = 10
-n_iter_search = 2
 random_seed = 1234
 param_dicts = [
     {
