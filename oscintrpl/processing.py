@@ -63,18 +63,18 @@ def processing(store=True, plot=False):
 
         for i in range(int(len(xx_frf) / aggreg)):
             xx_frf_n.append(
-                    (
-                        xx_frf[(i * aggreg) + int(aggreg / 2) - 1, 0],
-                        np.mean(xx_frf[i * aggreg : (i + 1) * aggreg, 1]),
-                        np.mean(xx_frf[i * aggreg : (i + 1) * aggreg, 2])
-                    )
+                (
+                    xx_frf[(i * aggreg) + int(aggreg / 2) - 1, 0],
+                    np.mean(xx_frf[i * aggreg : (i + 1) * aggreg, 1]),
+                    np.mean(xx_frf[i * aggreg : (i + 1) * aggreg, 2])
+                )
             )
             yy_frf_n.append(
-                    (
-                        yy_frf[(i * aggreg) + int(aggreg / 2) - 1, 0],
-                        np.mean(yy_frf[i * aggreg : (i + 1) * aggreg, 1]),
-                        np.mean(yy_frf[i * aggreg : (i + 1) * aggreg, 2])
-                    )
+                (
+                    yy_frf[(i * aggreg) + int(aggreg / 2) - 1, 0],
+                    np.mean(yy_frf[i * aggreg : (i + 1) * aggreg, 1]),
+                    np.mean(yy_frf[i * aggreg : (i + 1) * aggreg, 2])
+                )
             )
         xx_frf = np.asarray(xx_frf_n)
         yy_frf = np.asarray(yy_frf_n)

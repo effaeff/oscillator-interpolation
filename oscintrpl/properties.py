@@ -12,17 +12,10 @@ from scipy.stats import uniform, randint
 
 HELLER = True
 n_iter_search = 2
-freq_steps_aggreg = 10
+freq_steps_aggreg = 2
 
 # Global colors
-dark2 = [(217 / 255, 95 / 255, 2 / 255),
-         (27 / 255, 158 / 255, 119 / 255),
-         (117 / 255, 112 / 255, 179 / 255),
-         (231 / 255, 41 / 255, 138 / 255),
-         (102 / 255, 166 / 255, 30 / 255),
-         (230 / 255, 171 / 255, 2 / 255),
-         (166 / 255, 118 / 255, 29 / 255),
-         (102 / 255, 102 / 255, 102 / 255)]
+from colors import dark2
 # Data properties
 data_dir = '../data/01_raw/heller_ft4000' if HELLER else '../data/01_raw/dmg_hsc75linear'
 processed_dir = '../data/02_processed'
