@@ -3,6 +3,7 @@
 *__pycache__/
 data/
 auto/
+output/
 *~
 */.DS_Store
 *.png
@@ -31,3 +32,4 @@ models/
 results/
 misc.py
 plotter.py
+out.txt

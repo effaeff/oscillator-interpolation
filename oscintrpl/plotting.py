@@ -13,7 +13,7 @@ from properties import (
    figsize,
    fontsize
 )
-
+# plt.switch_backend('Agg') # LiDo
 rc('font', family='Arial')
 matplotlib.rcParams.update({'font.size': 14})
 
