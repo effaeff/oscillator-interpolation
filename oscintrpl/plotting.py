@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib
 from matplotlib import rc
 from matplotlib import pyplot as plt
-from plotter import modify_axis
+from plot_utils import modify_axis
 from properties import (
    plot_dir,
    x_range,
