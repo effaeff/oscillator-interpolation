@@ -49,18 +49,10 @@ def write_results(hyperopts, errors, variances):
                 )
             )
 
-def gen_dirs():
-    for directory in [data_dir, processed_dir, plot_dir, model_dir, results_dir]:
-        if not os.path.exists(directory):
-            try:
-                os.makedirs(directory)
-            except OSError:
-                print(f"Error: Creation of directory {directory} failed.")
-
 def main():
     """Main method"""
     misc.to_local_dir(__file__)
-    gen_dirs()
+    misc.gen_dirs([data_dir, processed_dir, plot_dir, model_dir, results_dir])
     # Definition of data and learning properties
     # data = np.load(f"{processed_dir}/processed_data.npy")
     data = processing(store=True, plot=True) 
