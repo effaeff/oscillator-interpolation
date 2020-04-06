@@ -35,6 +35,7 @@ class OscillatorOptimizer:
             np.sum((self.target_data[0] - amp)**2) +
             np.sum((self.target_data[1] - phase)**2)
         )
+        print(error)
         return error
 
     def run(self):
@@ -58,6 +59,7 @@ class OscillatorOptimizer:
 def main():
     """Main method"""
     test_file = 'XX_G_B-60.txt'
+    #test_file = 'XX_H_B-120.txt'
     frf = np.loadtxt(test_file, delimiter=delimiter)
     target_data = frf[(np.where((frf[:, 0] > x_range[0]) & (frf[:, 0] < x_range[1])))]
 

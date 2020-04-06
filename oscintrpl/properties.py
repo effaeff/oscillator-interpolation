@@ -12,7 +12,7 @@ from scipy.stats import uniform, randint
 
 HELLER = True
 n_iter_search = 2
-freq_steps_aggreg = 2
+freq_steps_aggreg = 10
 
 # Global colors
 from colors import dark2
