@@ -1,15 +1,14 @@
-"""Main script"""
+"""Script for leaning FRFs"""
 
-import os
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
-from joblib import dump, load
+from joblib import dump
 
-from processing import processing
-from training import training
-from testing import testing
-from properties import (
+from oscintrpl.processing import processing
+from oscintrpl.training import training
+from oscintrpl.testing import testing
+from oscintrpl.properties import (
     data_dir,
     processed_dir,
     plot_dir,
@@ -49,34 +48,42 @@ def write_results(hyperopts, errors, variances):
                 )
             )
 
-def gen_dirs():
-    for directory in [data_dir, processed_dir, plot_dir, model_dir, results_dir]:
-        if not os.path.exists(directory):
-            try:
-                os.makedirs(directory)
-            except OSError:
-                print(f"Error: Creation of directory {directory} failed.")
-
 def main():
     """Main method"""
     misc.to_local_dir(__file__)
-    gen_dirs()
-    # Definition of data and learning properties
+    misc.gen_dirs([data_dir, processed_dir, plot_dir, model_dir, results_dir])
     # data = np.load(f"{processed_dir}/processed_data.npy")
-    data = processing(store=True, plot=True) 
+    np.set_printoptions(suppress=True)
+    data = processing(store=True, plot=False)
 
     # Train/test split
-    train_data, test_data = train_test_split(data, test_size=test_size, random_state=random_seed)
+    # train_data, test_data = train_test_split(data, test_size=test_size, random_state=random_seed)
+    train_data = np.empty((np.shape(data)[0] - 2, np.shape(data)[1], np.shape(data)[2]))
+    test_data = np.empty((2, np.shape(data)[1], np.shape(data)[2]))
+    test_idx = 0
+    train_idx = 0
+    for frf in data:
+        if frf[0, 0] == -50.0 and frf[0, 1] == 500.0 and frf[0, 2] == -60.0:
+            test_data[test_idx] = frf
+            test_idx += 1
+        elif frf[0, 0] == -50.0 and frf[0, 1] == 500.0 and frf[0, 2] == 0.0:
+            test_data[test_idx] = frf
+            test_idx += 1
+        else:
+            train_data[train_idx] = frf
+            train_idx += 1
 
     # Flatten training data by one dimension but keep the shape of the testing data,
     # to being able to test different FRFs separately
     train_data = np.reshape(train_data, (-1, input_size + output_size))
-    
+
     # Scale data
     x_scaler = MinMaxScaler()
     train_data[:, :input_size] = x_scaler.fit_transform(train_data[:, :input_size])
     for test_idx, __ in enumerate(test_data):
-        test_data[test_idx, :, :input_size] = x_scaler.transform(test_data[test_idx, :, :input_size])
+        test_data[test_idx, :, :input_size] = x_scaler.transform(
+            test_data[test_idx, :, :input_size]
+        )
 
     hyperopts = training(train_data)
     total_errors = np.empty((len(hyperopts), output_size))
@@ -97,4 +104,3 @@ def main():
 if __name__ == '__main__':
     misc.to_local_dir('__file__')
     main()
-

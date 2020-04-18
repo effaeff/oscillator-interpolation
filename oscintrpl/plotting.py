@@ -4,16 +4,16 @@ import numpy as np
 import matplotlib
 from matplotlib import rc
 from matplotlib import pyplot as plt
-from plotter import modify_axis
-from properties import (
-   plot_dir,
-   x_range,
-   y_range_amp,
-   y_range_phase,
-   figsize,
-   fontsize
+from plot_utils import modify_axis
+from oscintrpl.properties import (
+    plot_dir,
+    x_range,
+    y_range_amp,
+    y_range_phase,
+    figsize,
+    fontsize
 )
-# plt.switch_backend('Agg') # LiDo
+plt.switch_backend('Agg') # LiDo
 rc('font', family='Arial')
 matplotlib.rcParams.update({'font.size': 14})
 
@@ -61,7 +61,7 @@ def plot_frf(data, labels, colors, linestyles, title):
     axs[1] = modify_axis(axs[1], 'Hz', '°', -2, -2, fontsize)
 
     fig.suptitle(title, fontsize=fontsize + 4, y=1.08)
-    
+
     for axis in axs:
         axis.get_yaxis().set_label_coords(-0.1,0.5)
 

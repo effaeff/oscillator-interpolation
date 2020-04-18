@@ -4,18 +4,17 @@ import numpy as np
 from tqdm import tqdm
 from sklearn.model_selection import RandomizedSearchCV
 
-from properties import (
+from oscintrpl.properties import (
     regressors,
     param_dicts,
     input_size,
     output_size,
     cv_folds,
     n_iter_search,
-    random_seed
 )
 
 
-def training(train_data): 
+def training(train_data):
     """Learning method"""
 
     hyperopts = np.empty((len(regressors), output_size), dtype=object)
@@ -32,6 +31,5 @@ def training(train_data):
             )
             rand_search.fit(train_data[:, :input_size], target)
             hyperopts[reg_idx, out_idx] = rand_search
-    
-    return hyperopts
 
+    return hyperopts

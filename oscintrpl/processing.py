@@ -4,16 +4,13 @@ for the prediction of each amplitude of each measurement direction.
 """
 
 import os
-import sys
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from plotting import plot_frf 
-import misc
-from properties import (
+from oscintrpl.plotting import plot_frf
+from oscintrpl.properties import (
     data_dir,
     processed_dir,
-    plot_dir,
     dark2,
     delimiter,
     doe_file,
@@ -25,6 +22,19 @@ from properties import (
     output_size
 )
 
+
+def aggregate(data, aggreg):
+    """Method to aggregate data"""
+    data_aggreg = []
+    for i in range(int(len(data) / aggreg)):
+        data_aggreg.append(
+            (
+                data[(i * aggreg) + int(aggreg / 2) - 1, 0],
+                np.mean(data[i * aggreg : (i + 1) * aggreg, 1]),
+                np.mean(data[i * aggreg : (i + 1) * aggreg, 2])
+            )
+        )
+    return np.asarray(data_aggreg)
 
 def processing(store=True, plot=False):
     """Processing method"""
@@ -57,27 +67,9 @@ def processing(store=True, plot=False):
         xx_frf = xx_frf[(np.where((xx_frf[:, 0] > x_range[0]) & (xx_frf[:, 0] < x_range[1])))]
         yy_frf = yy_frf[(np.where((yy_frf[:, 0] > x_range[0]) & (yy_frf[:, 0] < x_range[1])))]
 
-        # Get mean in blocks to get frf steps in aggregation period
-        xx_frf_n = []
-        yy_frf_n = []
+        xx_frf = aggregate(xx_frf, aggreg)
+        yy_frf = aggregate(yy_frf, aggreg)
 
-        for i in range(int(len(xx_frf) / aggreg)):
-            xx_frf_n.append(
-                    (
-                        xx_frf[(i * aggreg) + int(aggreg / 2) - 1, 0],
-                        np.mean(xx_frf[i * aggreg : (i + 1) * aggreg, 1]),
-                        np.mean(xx_frf[i * aggreg : (i + 1) * aggreg, 2])
-                    )
-            )
-            yy_frf_n.append(
-                    (
-                        yy_frf[(i * aggreg) + int(aggreg / 2) - 1, 0],
-                        np.mean(yy_frf[i * aggreg : (i + 1) * aggreg, 1]),
-                        np.mean(yy_frf[i * aggreg : (i + 1) * aggreg, 2])
-                    )
-            )
-        xx_frf = np.asarray(xx_frf_n)
-        yy_frf = np.asarray(yy_frf_n)
         # Get pose features
         x_pos, y_pos = positions.loc[positions['Label'] == pos_label][pos_axes].values[0]
         title = '{}{}_{}{}_B{}'.format(pos_axes[0], x_pos, pos_axes[1], y_pos, b_angle)
@@ -111,4 +103,3 @@ def processing(store=True, plot=False):
         np.save('{}/processed_data.npy'.format(processed_dir), processed)
 
     return processed
-
