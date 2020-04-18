@@ -17,7 +17,8 @@ from oscintrpl.properties import (
     input_size,
     output_size,
     test_size,
-    random_seed
+    random_seed,
+    test_configs
 )
 import misc
 
@@ -63,13 +64,13 @@ def main():
     test_idx = 0
     train_idx = 0
     for frf in data:
-        if frf[0, 0] == -50.0 and frf[0, 1] == 500.0 and frf[0, 2] == -60.0:
-            test_data[test_idx] = frf
-            test_idx += 1
-        elif frf[0, 0] == -50.0 and frf[0, 1] == 500.0 and frf[0, 2] == 0.0:
-            test_data[test_idx] = frf
-            test_idx += 1
-        else:
+        test_found = False
+        for config in test_config: 
+            if frf[0, 0] == config[0] and frf[0, 1] == config[1] and frf[0, 2] == config[2]:
+                test_data[test_idx] = frf
+                test_idx += 1
+                test_found = True
+        if not test_found:
             train_data[train_idx] = frf
             train_idx += 1
 

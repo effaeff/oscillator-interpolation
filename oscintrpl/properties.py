@@ -17,6 +17,11 @@ OSC = True
 n_iter_search = 300
 freq_steps_aggreg = 2
 
+test_configs = (
+    [[-50.0, 500.0, -60.0], [-50.0, 500.0, 0.0], [-200.0, 300.0, 0.0], [-50.0, 100.0, 10.0]] if not HELLER else
+    [[-266.66, 233.33, 0.0], [266.66, 233.33, -150.0], [-266.66, 233.33, -30.0], [0.0, 500.0, -90.0]]
+)
+
 # Data properties
 data_dir = (
     '../data/01_raw/heller_ft4000/frfs' if HELLER and not OSC else
