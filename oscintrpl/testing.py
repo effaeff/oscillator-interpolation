@@ -5,8 +5,8 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler
 
-from plotting import plot_frf
-from properties import (
+from oscintrpl.plotting import plot_frf
+from oscintrpl.properties import (
     input_size,
     output_size,
     dark2
@@ -59,9 +59,9 @@ def testing(hyperopt, test_data, scaler):
                     for idx in range(len(outputs))
                 ]
             ) * 100.0
-            
+
             predictions[out_idx] = pred
-        
+
         predictions = np.transpose(predictions)
         test_plot = np.copy(test_scenario)
         test_plot[:, :input_size] = scaler.inverse_transform(test_plot[:, :input_size])
