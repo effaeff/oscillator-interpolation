@@ -54,8 +54,8 @@ def main():
     misc.gen_dirs([data_dir, processed_dir, plot_dir, model_dir, results_dir])
     # Definition of data and learning properties
     np.set_printoptions(suppress=True)
-    data = np.load(f"{processed_dir}/processed_data.npy")
-    # data = processing(store=True, plot=False)
+    # data = np.load(f"{processed_dir}/processed_data.npy")
+    data = processing(store=True, plot=False)
 
     # Train/test split
     # train_data, test_data = train_test_split(data, test_size=test_size, random_state=random_seed)
