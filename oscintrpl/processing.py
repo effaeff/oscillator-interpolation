@@ -5,6 +5,7 @@ for the prediction of each amplitude of each measurement direction.
 
 import os
 import pandas as pd
+import yaml
 import numpy as np
 from tqdm import tqdm
 from oscintrpl.plotting import plot_frf
@@ -19,7 +20,8 @@ from oscintrpl.properties import (
     pos_axes,
     x_range,
     input_size,
-    output_size
+    output_size,
+    n_fitted_osc
 )
 
 
@@ -35,6 +37,62 @@ def aggregate(data, aggreg):
             )
         )
     return np.asarray(data_aggreg)
+
+def process_osc(osc_file):
+    """Method to read and process single oscillator file"""
+    targets = []
+    with open(f"{data_dir}/{osc_file}") as file_handle:
+        dicts = []
+        xx_data = yaml.load_all(file_handle, Loader=yaml.FullLoader)
+        for doc in xx_data:
+            first, __ = doc.items()
+            dicts.append(first[1])
+        dicts = dicts[0]
+        for osci in dicts:
+            targets.append(osci['freq'])
+            targets.append(osci['gamma'])
+            targets.append(osci['mass'])
+
+        # Sort oscillators by frequency
+        targets = np.reshape(targets, (int(len(targets) / 3), 3))
+        targets = list(targets)
+        targets.sort(key=lambda row: row[0])
+        targets = np.asarray(targets)
+        targets = np.reshape(targets, (-1))
+    return targets
+
+def read_osc(store=True):
+    """Read fitted oscillator parameter values"""
+    filenames = [
+        filename for filename in os.listdir(data_dir)
+        if filename.endswith('.osci') and filename.startswith('YY')
+    ]
+    xls = pd.ExcelFile(doe_file)
+    positions = pd.read_excel(xls, sheet_name='positions')
+
+    processed = np.empty((len(filenames), input_size + output_size))
+    for file_idx in tqdm(range(len(filenames))):
+        filename = filenames[file_idx]
+        # Get XX FRF based on filename of XX FRF
+        xx_file = filename.split('_')
+        xx_file[0] = 'XX'
+        b_angle = int(os.path.splitext(xx_file[-2][1:])[0])
+        pos_label = xx_file[1]
+        xx_file = '_'.join(xx_file)
+
+        xx_targets = process_osc(xx_file)
+        yy_targets = process_osc(filename)
+
+        x_pos, y_pos = positions.loc[positions['Label'] == pos_label][pos_axes].values[0]
+
+        processed[file_idx] = np.array(
+            [x_pos, y_pos, b_angle] + list(xx_targets) + list(yy_targets)
+        )
+
+    if store:
+        np.save('{}/processed_osc.npy'.format(processed_dir), processed)
+
+    return processed
 
 def processing(store=True, plot=False):
     """Processing method"""
