@@ -52,9 +52,8 @@ def main():
     """Main method"""
     misc.to_local_dir(__file__)
     misc.gen_dirs([data_dir, processed_dir, plot_dir, model_dir, results_dir])
-    # Definition of data and learning properties
-    np.set_printoptions(suppress=True)
     # data = np.load(f"{processed_dir}/processed_data.npy")
+    np.set_printoptions(suppress=True)
     data = processing(store=True, plot=False)
 
     # Train/test split
