@@ -56,16 +56,17 @@ def main():
     # data = np.load(f"{processed_dir}/processed_data.npy")
     np.set_printoptions(suppress=True)
     data = processing(store=True, plot=False)
+    print(np.shape(data))
 
     # Train/test split
     # train_data, test_data = train_test_split(data, test_size=test_size, random_state=random_seed)
     train_data = np.empty((np.shape(data)[0] - 2, np.shape(data)[1], np.shape(data)[2]))
-    test_data = np.empty((2, np.shape(data)[1], np.shape(data)[2]))
+    test_data = np.empty((len(test_configs), np.shape(data)[1], np.shape(data)[2]))
     test_idx = 0
     train_idx = 0
     for frf in data:
         test_found = False
-        for config in test_config: 
+        for config in test_configs:
             if frf[0, 0] == config[0] and frf[0, 1] == config[1] and frf[0, 2] == config[2]:
                 test_data[test_idx] = frf
                 test_idx += 1

@@ -13,13 +13,23 @@ import xgboost as xgb
 from scipy.stats import uniform, randint
 
 HELLER = True
-OSC = True
+OSC = False
 n_iter_search = 300
 freq_steps_aggreg = 2
 
 test_configs = (
-    [[-50.0, 500.0, -60.0], [-50.0, 500.0, 0.0], [-200.0, 300.0, 0.0], [-50.0, 100.0, 10.0]] if not HELLER else
-    [[-266.66, 233.33, 0.0], [266.66, 233.33, -150.0], [-266.66, 233.33, -30.0], [0.0, 500.0, -90.0]]
+    [
+        [-50.0, 500.0, -60.0],
+        [-50.0, 500.0, 0.0],
+        [-200.0, 300.0, 0.0],
+        [-50.0, 100.0, 10.0]
+    ] if not HELLER else
+    [
+        [-266.66, 233.33, 0.0],
+        [266.66, 233.33, -150.0],
+        [-266.66, 233.33, -30.0],
+        [0.0, 500.0, -90.0]
+    ]
 )
 
 # Data properties
@@ -47,8 +57,8 @@ x_range = (200, 3201, 1000) if HELLER else (1000, 3001, 500)
 y_range_amp = (0, 0.9, 0.2)
 y_range_phase = (-180.0, 81.0, 50.0)
 # Model properties
-input_size = 3
-output_size = 60
+input_size = 3 if OSC else 4
+output_size = 60 if OSC else 4
 n_fitted_osc = 10
 test_size = 0.1
 cv_folds = 10
