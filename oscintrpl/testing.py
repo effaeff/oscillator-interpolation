@@ -3,7 +3,6 @@
 import math
 import numpy as np
 from sklearn.metrics import mean_squared_error
-from sklearn.preprocessing import MinMaxScaler
 
 from oscillator import calc_frf
 
@@ -77,6 +76,42 @@ def test_osc(hyperopt, test_data, test_configs):
 
     return errors, variances
 
+def eval_frf(hyperopt, test_data, test_configs):
+    """Method to evaluate trained model"""
+    frequency = np.arange(x_range[0], x_range[1], freq_steps_aggreg)
+    for test_idx, test_scenario in enumerate(test_data):
+        test_config = test_configs[test_idx]
+        predictions = np.empty((output_size, len(test_scenario)))
+        for out_idx in range(output_size):
+            pred = hyperopt[out_idx].predict(test_scenario)
+            predictions[out_idx] = pred
+
+        predictions = np.transpose(predictions)
+        np.save(
+            '{}_prediction_test_{}_{}_{}.npy'.format(
+                hyperopt[0].best_estimator_.__class__.__name__,
+                test_config[0],
+                test_config[1],
+                test_config[2]
+            ),
+            predictions
+        )
+        plot_frf(
+            [
+                np.c_[frequency, predictions[:, 0], predictions[:, 2]],
+                np.c_[frequency, predictions[:, 1], predictions[:, 3]]
+            ],
+            ['XX pred', 'YY pred'],
+            [dark2[0], dark2[1]],
+            ['-', '-'],
+            '{}_test_{}_{}_{}'.format(
+                hyperopt[0].best_estimator_.__class__.__name__,
+                test_config[0],
+                test_config[1],
+                test_config[2]
+            )
+        )
+
 def test_frf(hyperopt, test_data, scaler):
     """
     Args:
@@ -112,17 +147,15 @@ def test_frf(hyperopt, test_data, scaler):
                 np.copy(test_scenario[:, input_size + out_idx]),
                 pred
             ]
-            y_scaler = MinMaxScaler()
-            outputs_scaled = y_scaler.fit_transform(outputs)
             errors[out_idx] += math.sqrt(
-                mean_squared_error(outputs_scaled[:, 0], outputs_scaled[:, 1])
-            ) * 100.0
+                mean_squared_error(outputs[:, 0], outputs[:, 1])
+            )
             variances[out_idx] += np.std(
                 [
-                    abs(outputs_scaled[idx, 0] - outputs_scaled[idx, 1])
+                    abs(outputs[idx, 0] - outputs[idx, 1])
                     for idx in range(len(outputs))
                 ]
-            ) * 100.0
+            )
 
             predictions[out_idx] = pred
 
