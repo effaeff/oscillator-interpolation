@@ -37,10 +37,10 @@ def write_results(hyperopts, errors, variances):
         for hyper_idx, hyperopt in enumerate(hyperopts):
             res_file.write(
                 "{0}\t"
-                "{1:.2f} % +/- {2:.2f} %\t"
-                "{3:.2f} % +/- {4:.2f} %\t"
-                "{5:.2f} % +/- {6:.2f} %\t"
-                "{7:.2f} % +/- {8:.2f} %\n".format(
+                "{1:.2f} +/- {2:.2f}\t"
+                "{3:.2f} +/- {4:.2f}\t"
+                "{5:.2f} +/- {6:.2f}\t"
+                "{7:.2f} +/- {8:.2f}\n".format(
                     hyperopt[0].best_estimator_.__class__.__name__,
                     errors[hyper_idx, 0], variances[hyper_idx, 0],
                     errors[hyper_idx, 1], variances[hyper_idx, 1],
@@ -56,23 +56,26 @@ def main():
     # data = np.load(f"{processed_dir}/processed_data.npy")
     np.set_printoptions(suppress=True)
     data = processing(store=True, plot=False)
-    print(np.shape(data))
 
     # Train/test split
     # train_data, test_data = train_test_split(data, test_size=test_size, random_state=random_seed)
-    train_data = np.empty((np.shape(data)[0] - 2, np.shape(data)[1], np.shape(data)[2]))
+    train_data = np.empty((np.shape(data)[0] - len(test_configs), np.shape(data)[1], np.shape(data)[2]))
     test_data = np.empty((len(test_configs), np.shape(data)[1], np.shape(data)[2]))
     test_idx = 0
-    train_idx = 0
-    for frf in data:
+    train_idx = 0 
+    for config in test_configs:
+        for scenario in data:
+            if scenario[0, 0] == config[0] and scenario[0, 1] == config[1] and scenario[0, 2] == config[2]:
+                test_data[test_idx] = scenario
+                test_idx += 1
+
+    for scenario in data:
         test_found = False
         for config in test_configs:
-            if frf[0, 0] == config[0] and frf[0, 1] == config[1] and frf[0, 2] == config[2]:
-                test_data[test_idx] = frf
-                test_idx += 1
+            if scenario[0, 0] == config[0] and scenario[0, 1] == config[1] and scenario[0, 2] == config[2]:
                 test_found = True
         if not test_found:
-            train_data[train_idx] = frf
+            train_data[train_idx] = scenario
             train_idx += 1
 
     # Flatten training data by one dimension but keep the shape of the testing data,
