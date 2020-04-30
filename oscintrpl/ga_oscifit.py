@@ -10,27 +10,27 @@ from properties import (
     fontsize
 )
 
-OMEGA_MIN, OMEGA_MAX = 100.0, 10000.0
+OMEGA_MIN, OMEGA_MAX = 950.0, 5000.0
 GAMMA_MIN, GAMMA_MAX = 0.1, 5000.0
 MASS_MIN, MASS_MAX = 0.0001, 100.0
-MUTATE_OSCIS = True
-NUM_OSCIS = 10
-BEST_CHOICE = 0.2
-MUTATION_RATE = 0.3
-CROSSOVER = 0.5
+MUTATE_OSCIS = False
+BEST_CHOICE = 0.3
+MUTATION_RATE = 0.7
+CROSSOVER = 0.75
 
 class Individual:
 
-    def __init__(self, params=None):
+    def __init__(self, num_oscis=6, params=None):
         """Initialize individual"""
         self.fitness = None
         self.params=[]
+        self.num_oscis = num_oscis
         #if len(params) > 0:
         if params is not None:
             for i in range(len(params)):
                 self.params.append(params[i] * (1 + random.choice([-0.05, 0.05])))
         else:
-            for i in range(NUM_OSCIS):
+            for i in range(self.num_oscis):
                 self.params.append(random.uniform(OMEGA_MIN, OMEGA_MAX))
                 self.params.append(random.uniform(GAMMA_MIN, GAMMA_MAX))
                 self.params.append(random.uniform(MASS_MIN, MASS_MAX))
@@ -49,17 +49,22 @@ class Individual:
         """Mutate individual"""
         if MUTATE_OSCIS:
             #mutate per osci
-            for i in range(NUM_OSCIS):
+            for i in range(self.num_oscis):
                 if (random.choice([0.0, 1.0]) < rate):
-                    self.params[i*3] = max(OMEGA_MIN ,min(OMEGA_MAX, random.uniform(-50.0, 50.0)  + self.params[i*3]))
-                    self.params[(i*3)+1] = max(GAMMA_MIN, min(GAMMA_MAX, random.uniform(0.9, 1.1)  * self.params[(i*3)+1]))
-                    self.params[(i*3)+2] = max(MASS_MIN, min(MASS_MAX, random.uniform(0.9, 1.1) * self.params[(i*3)+2]))
+                    #self.params[i*3] = max(OMEGA_MIN ,min(OMEGA_MAX, random.uniform(-50.0, 50.0)  + self.params[i*3]))
+                    #self.params[(i*3)+1] = max(GAMMA_MIN, min(GAMMA_MAX, random.uniform(0.9, 1.1)  * self.params[(i*3)+1]))
+                    #self.params[(i*3)+2] = max(MASS_MIN, min(MASS_MAX, random.uniform(0.9, 1.1) * self.params[(i*3)+2]))
+                    self.params[i*3] = max(OMEGA_MIN ,min(OMEGA_MAX, random.uniform(-5.0, 5.0)  + self.params[i*3]))
+                    self.params[(i*3)+1] = max(GAMMA_MIN, min(GAMMA_MAX, random.uniform(0.98, 1.02)  * self.params[(i*3)+1]))
+                    self.params[(i*3)+2] = max(MASS_MIN, min(MASS_MAX, random.uniform(0.98, 1.02) * self.params[(i*3)+2]))
+                    #self.params[(i*3)+1] = max(GAMMA_MIN, min(GAMMA_MAX, random.choice([1.02, 0.98])  * self.params[(i*3)+1]))
+                    #self.params[(i*3)+2] = max(MASS_MIN, min(MASS_MAX, random.choice([1.02, 0.98]) * self.params[(i*3)+2]))
         else:
             #mutate each param seperate
             for i in range(len(self.params)):
                 if (random.choice([0.0, 1.0]) < rate):
                     if i % 3 == 0:#omega +/- max 10 Hz
-                        self.params[i] = max(OMEGA_MIN, min(OMEGA_MAX, random.uniform(-10.0, 10.0)  + self.params[i])) 
+                        self.params[i] = max(OMEGA_MIN, min(OMEGA_MAX, random.uniform(-5.0, 5.0)  + self.params[i])) 
                     if i % 3 == 1:#gamma +/- 2%
                         self.params[i] = max(GAMMA_MIN, min(GAMMA_MAX, random.choice([1.02, 0.98])  * self.params[i]))
                     if i % 3 == 2:#mass +/- 2%
@@ -69,8 +74,8 @@ class Individual:
     def crossover(self, ind2):
         """Cross two individuals"""
         new_params = []
-        for i in range(NUM_OSCIS):
-            if (random.choice([0.0, 1.0]) < 0.5):
+        for i in range(self.num_oscis):
+            if (random.choice([0.0, 1.0]) < CROSSOVER):
                 new_params.append(self.params[i*3])
                 new_params.append(self.params[(i*3)+1])
                 new_params.append(self.params[(i*3)+2])
@@ -78,20 +83,30 @@ class Individual:
                 new_params.append(ind2.params[(i*3)])
                 new_params.append(ind2.params[(i*3)+1])
                 new_params.append(ind2.params[(i*3)+2]) 
-        return Individual(new_params)
+        return Individual(self.num_oscis, new_params)
      
 
+    # def write_params(self, filename):
+    #     """writes parameter in file"""
+    #     with open(filename, 'w') as out:
+    #         for i in range(self.num_oscis):
+    #             out.write('{:5.6f}, {:5.6f}, {:5.6f}\n'.format(self.params[i*3], self.params[(i*3)+1], self.params[(i*3)+2]))   
+
     def write_params(self, filename):
-        """writes parameter in file"""
-        with open(filename, 'w') as out:
-            for i in range(NUM_OSCIS):
-                out.write('{:5.6f}, {:5.6f}, {:5.6f}\n'.format(self.params[i*3], self.params[(i*3)+1], self.params[(i*3)+2]))                   
+        with open (filename, 'w') as out:
+            out.write('XX:\n')
+            for i in range(self.num_oscis):
+                out.write('  - {{ freq: {:4.2f}, gamma: {:4.3f}, mass: {:4.6f} }}\n'.format(self.params[i*3], self.params[(i*3)+1], self.params[(i*3)+2]))
+            out.write('YY:\n')
+            for i in range(self.num_oscis):
+                out.write('  - {{ freq: {:4.2f}, gamma: {:4.3f}, mass: {:4.6f} }}\n'.format(self.params[i*3], self.params[(i*3)+1], self.params[(i*3)+2]))
+
 
 
     def print_params(self):
         """Print individual parameters"""
         print('Individual: ')
-        for i in range(NUM_OSCIS):
+        for i in range(self.num_oscis):
             print ('omega: {:4.4f}, gamma: {:4.4f}, mass: {:3.6f}'.format(self.params[(i*3)], self.params[(i*3)+1], self.params[(i*3)+2]))   
 
 
@@ -99,9 +114,10 @@ class Population:
 
     def __init__(self, size, x_data, target_data, initial_osci):
         """initialize population"""
+        num_oscis = int(len(initial_osci)/3)
         self.size = size
-        self.individuals = [Individual(initial_osci) for _ in range(size-1)]
-        initial = Individual(initial_osci)
+        self.individuals = [Individual(num_oscis, initial_osci) for _ in range(size-1)]
+        initial = Individual(num_oscis, initial_osci)
         initial.evaluate(x_data, target_data)
         self.individuals.append(initial)
         self.best = []
@@ -135,16 +151,17 @@ class Population:
     def enhance(self):
         """get new generation"""
         next_generation = []
-        for i in range(int(self.size*0.5) - 4):
+        #for i in range(int(self.size*0.5) - 4):
+        for i in range(int(self.size) - 8):
             choice = self.choice_best()
             new_individual = choice
             new_individual.mutate(self.mutation_rate)
             next_generation.append(new_individual)
-        for i in range(int(self.size*0.5) - 4):
-            first_choice = self.choice_best()
-            second_choice = self.choice_best()
-            new_individual = first_choice.crossover(second_choice)
-            next_generation.append(new_individual)
+        # for i in range(int(self.size*0.5) - 4):
+        #     first_choice = self.choice_best()
+        #     second_choice = self.choice_best()
+        #     new_individual = first_choice.crossover(second_choice)
+        #     next_generation.append(new_individual)
         for i in range(3):
             next_generation.append(deepcopy(self.individuals[i]))
         for i in range(5):

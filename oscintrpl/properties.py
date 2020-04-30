@@ -10,7 +10,7 @@ import xgboost as xgb
 from scipy.stats import uniform, randint
 
 
-HELLER = True
+HELLER = False
 n_iter_search = 2
 freq_steps_aggreg = 10
 
