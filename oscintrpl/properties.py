@@ -12,17 +12,32 @@ from sklearn.ensemble import (
 import xgboost as xgb
 from scipy.stats import uniform, randint
 
-HELLER = True
+HELLER = False
 OSC = False
-n_iter_search = 300
+n_iter_search = 100
 freq_steps_aggreg = 2
 
 test_configs = (
     [
-        [-50.0, 500.0, -60.0],
-        [-50.0, 500.0, 0.0],
-        [-200.0, 300.0, 0.0],
-        [-50.0, 100.0, 10.0]
+#         [-50.0, 500.0, -60.0],
+#         [-50.0, 500.0, 0.0],
+#         [-200.0, 300.0, 0.0],
+#         [-50.0, 100.0, 10.0]
+        #[-50.0, 500.0, -45.0],
+        #[-200.0, 300.0, -45.0],
+        #[-350.0, 100.0, -45.0],
+        #[-350.0, 500.0, -45.0]
+        # [-50.0, 100.0, -30.0],
+        # [-50.0, 500.0, -30.0],
+        # [-200.0, 300.0, -30.0],
+        # [-350.0, 100.0, -30.0],
+        # [-350.0, 500.0, -30.0]
+#         [-50.0, 100.0, -20.0],
+#         [-50.0, 500.0, -20.0],
+#         [-200.0, 300.0, -20.0],
+#         [-350.0, 100.0, -20.0],
+#         [-350.0, 500.0, -20.0]
+        [-333.33, 300.0, 0.0] # wirtzi
     ] if not HELLER else
     [
         [-266.66, 233.33, 0.0],
@@ -75,7 +90,7 @@ param_dicts = [
     }
     # {'alpha': uniform()},
     # {'alpha': uniform()},
-    # {'alpha': uniform(), 'l1_ratio': uniform()},
+    # {'alpha': uniform(), 'l1_ratio': uniform()}
     # {
         # 'learning_rate': uniform(0.0001, 0.1),
         # 'n_estimators': randint(100, 1000)
@@ -89,18 +104,18 @@ param_dicts = [
     #     'max_features': randint(1, input_size)
     # },
     # {
-        # 'n_estimators': randint(100, 1000),
-        # 'max_depth': randint(2, 32),
-        # 'min_samples_split': randint(2, 11),
-        # 'min_samples_leaf': randint(2, 11),
-        # 'max_features': randint(1, input_size)
+    #     'n_estimators': randint(100, 1000),
+    #     'max_depth': randint(2, 32),
+    #     'min_samples_split': randint(2, 11),
+    #     'min_samples_leaf': randint(2, 11),
+    #     'max_features': randint(1, input_size)
     # }
 ]
 regressors = [
     [xgb.XGBRegressor(objective='reg:squarederror') for __ in range(output_size)]
     # [Ridge(random_state=random_seed) for __ in range(output_size)],
     # [Lasso(random_state=random_seed) for __ in range(output_size)],
-    # [ElasticNet(random_state=random_seed) for __ in range(output_size)],
+    # [ElasticNet(random_state=random_seed) for __ in range(output_size)]
     # [AdaBoostRegressor(random_state=random_seed) for __ in range(output_size)],
     # [GradientBoostingRegressor(random_state=random_seed) for __ in range(output_size)],
     # [RandomForestRegressor(random_state=random_seed, n_jobs=-1) for __ in range(output_size)]
