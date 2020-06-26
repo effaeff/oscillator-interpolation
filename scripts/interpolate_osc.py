@@ -83,12 +83,56 @@ def main():
             train_data[train_idx] = row
             train_idx += 1
 
+    import os
+    import math
+    from sklearn.metrics import mean_squared_error
+    regre = ['ElasticNet', 'RandomForestRegressor', 'XGBRegressor']
+    pred_dir = '{}/dmg_hsc75linear/osc_fitting_hypsrch300_-20_predictions'.format(results_dir)
+
+    for reg in regre:
+        files = [
+            filename for filename in os.listdir(pred_dir)
+            if filename.startswith(reg)
+        ]
+        freq_errors = []
+        gamma_errors = []
+        mass_errors = []
+        for config_idx, config in enumerate(test_configs):
+            local_test = test_data[config_idx]
+            local_pred_file = files[0]
+            for idx in range(1, len(files)):
+                file_config = os.path.splitext(files[idx])[0].split('_')[2:]
+                if np.all([float(file_config[jdx]) == config[jdx] for jdx in range(len(config))]):
+                    local_pred_file = files[idx]
+            local_pred = np.load('{}/{}'.format(pred_dir, local_pred_file))
+            local_test = local_test[input_size:]
+            freq_error = math.sqrt(mean_squared_error(local_test[::3], local_pred[::3]))
+            gamma_error = math.sqrt(mean_squared_error(local_test[1::3], local_pred[1::3]))
+            mass_error = math.sqrt(mean_squared_error(local_test[2::3], local_pred[2::3]))
+            freq_errors.append(freq_error)
+            gamma_errors.append(gamma_error)
+            mass_errors.append(mass_error)
+
+
+        print(reg)
+        # print("Frequency error: {} +/- {}".format(np.mean(freq_errors), np.std(freq_errors)))
+        # print("Gamma error: {} +/- {}".format(np.mean(gamma_errors), np.std(gamma_errors)))
+        # print("Mass error: {} +/- {}".format(np.mean(mass_errors), np.std(mass_errors)))
+        print(r"{:.2f} \pm {:.2f} & {:.2f} \pm {:.2f} & {:.2f} \pm {:.2f}".format(
+            np.mean(freq_errors), np.std(freq_errors),
+            np.mean(gamma_errors), np.std(gamma_errors),
+            np.mean(mass_errors), np.std(mass_errors)
+        ))
+
+    quit()
+
     # Scale data
     x_scaler = MinMaxScaler()
     train_data[:, :input_size] = x_scaler.fit_transform(train_data[:, :input_size])
     test_data[:, :input_size] = x_scaler.transform(test_data[:, :input_size])
 
     hyperopts = training(train_data)
+
     total_errors = np.empty((len(hyperopts), output_size))
     total_variances = np.empty((len(hyperopts), output_size))
     for hyper_idx, hyperopt in enumerate(hyperopts):
