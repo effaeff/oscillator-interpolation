@@ -8,7 +8,6 @@ from joblib import load
 from oscintrpl.testing import eval_frf
 from oscintrpl.processing import processing
 from oscintrpl.properties import (
-    plot_dir,
     model_dir,
     input_size,
     output_size,
@@ -28,13 +27,19 @@ def main():
     data = processing(store=True, plot=False)
 
     # Train/test split
-    train_data = np.empty((np.shape(data)[0] - len(test_configs), np.shape(data)[1], np.shape(data)[2]))
-    train_idx = 0 
+    train_data = np.empty(
+        (np.shape(data)[0] - len(test_configs), np.shape(data)[1], np.shape(data)[2])
+    )
+    train_idx = 0
 
     for scenario in data:
         test_found = False
         for config in test_configs:
-            if scenario[0, 0] == config[0] and scenario[0, 1] == config[1] and scenario[0, 2] == config[2]:
+            if (
+                    scenario[0, 0] == config[0] and
+                    scenario[0, 1] == config[1] and
+                    scenario[0, 2] == config[2]
+                ):
                 test_found = True
         if not test_found:
             train_data[train_idx] = scenario
@@ -56,8 +61,8 @@ def main():
             eval_scenario[freq_idx] = eval_config + [freq]
         eval_data[eval_idx] = x_scaler.transform(eval_scenario)
 
-    model_names = [filename for filename in os.listdir(model_dir) if filename.endswith('.joblib')]    
-    for hyper_idx, filename in enumerate(model_names):
+    model_names = [filename for filename in os.listdir(model_dir) if filename.endswith('.joblib')]
+    for filename in model_names:
         hyperopt = load('{}/{}'.format(model_dir, filename))
         eval_frf(hyperopt, eval_data, eval_configs)
 

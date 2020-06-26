@@ -3,7 +3,6 @@
 import math
 import numpy as np
 from sklearn.metrics import mean_squared_error
-from sklearn.preprocessing import MinMaxScaler
 
 from oscillator import calc_frf
 
@@ -14,10 +13,11 @@ from oscintrpl.properties import (
     dark2,
     x_range,
     freq_steps_aggreg,
-    n_fitted_osc
+    n_fitted_osc_x,
+    n_fitted_osc_y
 )
 
-def test_osc(hyperopt, test_data):
+def test_osc(hyperopt, test_data, test_configs):
     """Test single scenario"""
     predictions = np.empty((output_size, len(test_data)))
     errors = np.empty(output_size)
@@ -42,12 +42,21 @@ def test_osc(hyperopt, test_data):
 
     for test_idx, __ in enumerate(test_data):
         local_pred = predictions[test_idx]
+        np.save(
+            '{}_prediction_{}_{}_{}.npy'.format(
+                hyperopt[0].best_estimator_.__class__.__name__,
+                test_configs[test_idx][0],
+                test_configs[test_idx][1],
+                test_configs[test_idx][2],
+            ),
+            local_pred
+        )
         local_test = test_data[test_idx, input_size:]
-        amp_pred_xx, phase_pred_xx = calc_frf(frequency, local_pred[:n_fitted_osc * 3])
-        amp_pred_yy, phase_pred_yy = calc_frf(frequency, local_pred[n_fitted_osc * 3:])
+        amp_pred_xx, phase_pred_xx = calc_frf(frequency, local_pred[:n_fitted_osc_x * 3])
+        amp_pred_yy, phase_pred_yy = calc_frf(frequency, local_pred[n_fitted_osc_y * 3:])
 
-        amp_test_xx, phase_test_xx = calc_frf(frequency, local_test[:n_fitted_osc * 3])
-        amp_test_yy, phase_test_yy = calc_frf(frequency, local_test[n_fitted_osc * 3:])
+        amp_test_xx, phase_test_xx = calc_frf(frequency, local_test[:n_fitted_osc_x * 3])
+        amp_test_yy, phase_test_yy = calc_frf(frequency, local_test[n_fitted_osc_y * 3:])
 
         plot_frf(
             [
@@ -103,7 +112,7 @@ def eval_frf(hyperopt, test_data, test_configs):
             )
         )
 
-def testing(hyperopt, test_data, scaler):
+def test_frf(hyperopt, test_data, scaler):
     """
     Args:
         hyperopt:
@@ -139,7 +148,7 @@ def testing(hyperopt, test_data, scaler):
                 pred
             ]
             errors[out_idx] += math.sqrt(
-                    mean_squared_error(outputs[:, 0], outputs[:, 1])
+                mean_squared_error(outputs[:, 0], outputs[:, 1])
             )
             variances[out_idx] += np.std(
                 [

@@ -15,29 +15,29 @@ from scipy.stats import uniform, randint
 HELLER = True
 OSC = False
 n_iter_search = 100
+MERHOFE = True
 freq_steps_aggreg = 2
 
 test_configs = (
     [
-#         [-50.0, 500.0, -60.0],
-#         [-50.0, 500.0, 0.0],
-#         [-200.0, 300.0, 0.0],
-#         [-50.0, 100.0, 10.0]
-        #[-50.0, 500.0, -45.0],
-        #[-200.0, 300.0, -45.0],
-        #[-350.0, 100.0, -45.0],
-        #[-350.0, 500.0, -45.0]
+        # [-50.0, 500.0, -60.0],
+        # [-50.0, 500.0, 0.0],
+        # [-200.0, 300.0, 0.0],
+        # [-50.0, 100.0, 10.0]
+        # [-50.0, 500.0, -45.0],
+        # [-200.0, 300.0, -45.0],
+        # [-350.0, 100.0, -45.0],
+        # [-349.0, 500.0, -45.0]
         # [-50.0, 100.0, -30.0],
         # [-50.0, 500.0, -30.0],
         # [-200.0, 300.0, -30.0],
         # [-350.0, 100.0, -30.0],
         # [-350.0, 500.0, -30.0]
-#         [-50.0, 100.0, -20.0],
-#         [-50.0, 500.0, -20.0],
-#         [-200.0, 300.0, -20.0],
-#         [-350.0, 100.0, -20.0],
-#         [-350.0, 500.0, -20.0]
-        [-333.33, 300.0, 0.0] # wirtzi
+        [-50.0, 100.0, -20.0],
+        [-50.0, 500.0, -20.0],
+        [-200.0, 300.0, -20.0],
+        [-350.0, 100.0, -20.0],
+        [-350.0, 500.0, -20.0]
     ] if not HELLER else
     [
 #        [-266.66, 233.33, 0.0],
@@ -88,8 +88,19 @@ y_range_amp = (0, 0.9, 0.2)
 y_range_phase = (-180.0, 81.0, 50.0)
 # Model properties
 input_size = 3 if OSC else 4
-output_size = 60 if OSC else 4
-n_fitted_osc = 10
+n_fitted_osc_x = (
+    10 if HELLER and not MERHOFE else
+    6 if not HELLER and not MERHOFE else
+    5 if HELLER and MERHOFE else
+    5
+)
+n_fitted_osc_y = (
+    10 if HELLER and not MERHOFE else
+    6 if not HELLER and not MERHOFE else
+    4 if HELLER and MERHOFE else
+    4
+)
+output_size = (n_fitted_osc_x + n_fitted_osc_y) * 3 if OSC else 4
 test_size = 0.1
 cv_folds = 10
 random_seed = 1234

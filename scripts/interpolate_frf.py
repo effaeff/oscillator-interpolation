@@ -7,7 +7,7 @@ from joblib import dump
 
 from oscintrpl.processing import processing
 from oscintrpl.training import training
-from oscintrpl.testing import testing
+from oscintrpl.testing import test_frf
 from oscintrpl.properties import (
     data_dir,
     processed_dir,
@@ -59,20 +59,30 @@ def main():
 
     # Train/test split
     # train_data, test_data = train_test_split(data, test_size=test_size, random_state=random_seed)
-    train_data = np.empty((np.shape(data)[0] - len(test_configs), np.shape(data)[1], np.shape(data)[2]))
+    train_data = np.empty(
+        (np.shape(data)[0] - len(test_configs), np.shape(data)[1], np.shape(data)[2])
+    )
     test_data = np.empty((len(test_configs), np.shape(data)[1], np.shape(data)[2]))
     test_idx = 0
-    train_idx = 0 
+    train_idx = 0
     for config in test_configs:
         for scenario in data:
-            if scenario[0, 0] == config[0] and scenario[0, 1] == config[1] and scenario[0, 2] == config[2]:
+            if (
+                    scenario[0, 0] == config[0] and
+                    scenario[0, 1] == config[1] and
+                    scenario[0, 2] == config[2]
+                ):
                 test_data[test_idx] = scenario
                 test_idx += 1
 
     for scenario in data:
         test_found = False
         for config in test_configs:
-            if scenario[0, 0] == config[0] and scenario[0, 1] == config[1] and scenario[0, 2] == config[2]:
+            if (
+                    scenario[0, 0] == config[0] and
+                    scenario[0, 1] == config[1] and
+                    scenario[0, 2] == config[2]
+                ):
                 test_found = True
         if not test_found:
             train_data[train_idx] = scenario
@@ -94,7 +104,7 @@ def main():
     total_errors = np.empty((len(hyperopts), output_size))
     total_variances = np.empty((len(hyperopts), output_size))
     for hyper_idx, hyperopt in enumerate(hyperopts):
-        errors, variances = testing(hyperopt, test_data, x_scaler)
+        errors, variances = test_frf(hyperopt, test_data, x_scaler)
         total_errors[hyper_idx] = errors
         total_variances[hyper_idx] = variances
         dump(

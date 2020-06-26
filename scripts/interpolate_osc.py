@@ -17,7 +17,8 @@ from oscintrpl.properties import (
     input_size,
     output_size,
     test_size,
-    random_seed
+    random_seed,
+    test_configs
 )
 import misc
 
@@ -62,18 +63,23 @@ def main():
 
     # Train/test split
     # train_data, test_data = train_test_split(data, test_size=test_size, random_state=random_seed)
-    train_data = np.empty((np.shape(data)[0] - 2, np.shape(data)[1]))
-    test_data = np.empty((2, np.shape(data)[1]))
+    train_data = np.empty((np.shape(data)[0] - len(test_configs), np.shape(data)[1]))
+    test_data = np.empty((len(test_configs), np.shape(data)[1]))
     test_idx = 0
     train_idx = 0
+
+    for config in test_configs:
+        for row in data:
+            if row[0] == config[0] and row[1] == config[1] and row[2] == config[2]:
+                test_data[test_idx] = row
+                test_idx += 1
+
     for row in data:
-        if row[0] == -266.66 and row[1] == 233.33 and row[2] == 0.0:
-            test_data[test_idx] = row
-            test_idx += 1
-        elif row[0] == 266.66 and row[1] == 233.33 and row[2] == -150.0:
-            test_data[test_idx] = row
-            test_idx += 1
-        else:
+        test_found = False
+        for config in test_configs:
+            if row[0] == config[0] and row[1] == config[1] and row[2] == config[2]:
+                test_found = True
+        if not test_found:
             train_data[train_idx] = row
             train_idx += 1
 
@@ -86,7 +92,7 @@ def main():
     total_errors = np.empty((len(hyperopts), output_size))
     total_variances = np.empty((len(hyperopts), output_size))
     for hyper_idx, hyperopt in enumerate(hyperopts):
-        errors, variances = test_osc(hyperopt, test_data)
+        errors, variances = test_osc(hyperopt, test_data, test_configs)
         total_errors[hyper_idx] = errors
         total_variances[hyper_idx] = variances
         dump(

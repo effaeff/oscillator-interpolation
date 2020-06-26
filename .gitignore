@@ -30,6 +30,7 @@ output/
 *main*.out
 models/
 results/
+figures/
 misc.py
 plotter.py
 out.txt

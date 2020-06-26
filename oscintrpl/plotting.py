@@ -63,7 +63,7 @@ def plot_frf(data, labels, colors, linestyles, title):
     fig.suptitle(title, fontsize=fontsize + 4, y=1.08)
 
     for axis in axs:
-        axis.get_yaxis().set_label_coords(-0.1,0.5)
+        axis.get_yaxis().set_label_coords(-0.1, 0.5)
 
     fig.tight_layout()
     leg = axs[0].legend(

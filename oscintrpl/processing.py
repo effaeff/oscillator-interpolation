@@ -21,7 +21,7 @@ from oscintrpl.properties import (
     x_range,
     input_size,
     output_size,
-    n_fitted_osc
+    MERHOFE
 )
 
 
@@ -76,14 +76,22 @@ def read_osc(store=True):
         # Get XX FRF based on filename of XX FRF
         xx_file = filename.split('_')
         xx_file[0] = 'XX'
-        b_angle = int(os.path.splitext(xx_file[-2][1:])[0])
+        b_angle = float(
+            os.path.splitext(
+                xx_file[-1 if MERHOFE else -2][(0 if MERHOFE else 1):]
+            )[0]
+        )
+        b_angle = int(b_angle)
         pos_label = xx_file[1]
         xx_file = '_'.join(xx_file)
 
         xx_targets = process_osc(xx_file)
         yy_targets = process_osc(filename)
 
-        x_pos, y_pos = positions.loc[positions['Label'] == pos_label][pos_axes].values[0]
+        x_pos = float(os.path.splitext(xx_file)[0].split('_')[1])
+        y_pos = float(os.path.splitext(xx_file)[0].split('_')[2])
+        if not MERHOFE:
+            x_pos, y_pos = positions.loc[positions['Label'] == pos_label][pos_axes].values[0]
 
         processed[file_idx] = np.array(
             [x_pos, y_pos, b_angle] + list(xx_targets) + list(yy_targets)
