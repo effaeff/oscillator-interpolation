@@ -1,8 +1,8 @@
 #!/bin/bash -l
 
-#SBATCH --time=08:00:00
+#SBATCH --time=02:00:00
 #SBATCH -N 1 -c 48 -C cquad01
-#SBATCH --partition=med
+#SBATCH --partition=short
 
 #SBATCH --mem=200000
 
@@ -18,5 +18,5 @@ export PYTHONPATH=$PYTHONPATH:/work/smfefink/pylib
 echo "sbatch: START SLURM_JOB_ID $SLURM_JOB_ID (SLURM_TASK_PID $SLURM_TASK_PID) on $SLURMD_NODENAME"
 echo "sbatch: SLURM_JOB_NODELIST $SLURM_JOB_NODELIST"
 echo "sbatch: SLURM_JOB_ACCOUNT $SLURM_JOB_ACCOUNT"
-/work/smfefink/anaconda3/envs/tensorflow_cpu/bin/python scripts/interpolate_frf.py 
+/work/smfefink/anaconda3/bin/python scripts/interpolate_frf.py 
 

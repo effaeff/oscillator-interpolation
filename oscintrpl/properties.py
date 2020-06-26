@@ -12,7 +12,7 @@ from sklearn.ensemble import (
 import xgboost as xgb
 from scipy.stats import uniform, randint
 
-HELLER = False
+HELLER = True
 OSC = False
 n_iter_search = 100
 freq_steps_aggreg = 2
@@ -40,10 +40,25 @@ test_configs = (
         [-333.33, 300.0, 0.0] # wirtzi
     ] if not HELLER else
     [
-        [-266.66, 233.33, 0.0],
-        [266.66, 233.33, -150.0],
-        [-266.66, 233.33, -30.0],
-        [0.0, 500.0, -90.0]
+#        [-266.66, 233.33, 0.0],
+#        [266.66, 233.33, -150.0],
+#        [-266.66, 233.33, -30.0],
+#        [0.0, 500.0, -90.0]
+#        [-266.66, 233.33, -30.0],
+#        [-266.66, 766.66, -30.0],
+#        [0.0, 500.0, -30.0],
+#        [266.66, 233.33, -30.0],
+#        [266.66, 766.66, -30.0]
+#        [-266.66, 233.33, -60.0],
+#        [-266.66, 766.66, -60.0],
+#        [0.0, 500.0, -60.0],
+#        [266.66, 233.33, -60.0],
+#        [266.66, 766.66, -60.0]
+        [-266.66, 233.33, -120.0],
+        [-266.66, 766.66, -120.0],
+        [0.0, 500.0, -120.0],
+        [266.66, 233.33, -120.0],
+        [266.66, 766.66, -120.0]
     ]
 )
 
@@ -87,10 +102,10 @@ param_dicts = [
         'colsample_bytree': uniform(0.4, 0.6),
         'lambda': randint(1, 100),
         'gamma': uniform()
-    }
+    },
     # {'alpha': uniform()},
     # {'alpha': uniform()},
-    # {'alpha': uniform(), 'l1_ratio': uniform()}
+    {'alpha': uniform(), 'l1_ratio': uniform()},
     # {
         # 'learning_rate': uniform(0.0001, 0.1),
         # 'n_estimators': randint(100, 1000)
@@ -103,20 +118,20 @@ param_dicts = [
     #     'min_samples_leaf': randint(2, 11),
     #     'max_features': randint(1, input_size)
     # },
-    # {
-    #     'n_estimators': randint(100, 1000),
-    #     'max_depth': randint(2, 32),
-    #     'min_samples_split': randint(2, 11),
-    #     'min_samples_leaf': randint(2, 11),
-    #     'max_features': randint(1, input_size)
-    # }
+    {
+        'n_estimators': randint(100, 1000),
+        'max_depth': randint(2, 32),
+        'min_samples_split': randint(2, 11),
+        'min_samples_leaf': randint(2, 11),
+        'max_features': randint(1, input_size)
+    }
 ]
 regressors = [
-    [xgb.XGBRegressor(objective='reg:squarederror') for __ in range(output_size)]
+    [xgb.XGBRegressor(objective='reg:squarederror') for __ in range(output_size)],
     # [Ridge(random_state=random_seed) for __ in range(output_size)],
     # [Lasso(random_state=random_seed) for __ in range(output_size)],
-    # [ElasticNet(random_state=random_seed) for __ in range(output_size)]
+    [ElasticNet(random_state=random_seed) for __ in range(output_size)],
     # [AdaBoostRegressor(random_state=random_seed) for __ in range(output_size)],
     # [GradientBoostingRegressor(random_state=random_seed) for __ in range(output_size)],
-    # [RandomForestRegressor(random_state=random_seed, n_jobs=-1) for __ in range(output_size)]
+    [RandomForestRegressor(random_state=random_seed, n_jobs=-1) for __ in range(output_size)]
 ]
