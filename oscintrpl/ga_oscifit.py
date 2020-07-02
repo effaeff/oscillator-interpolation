@@ -7,42 +7,47 @@ from plot_utils import InteractivePlotter
 from properties import (
     dark2,
     figsize,
-    fontsize
+    fontsize,
+    x_range,
+    HELLER
 )
+from sklearn import preprocessing
 
-OMEGA_MIN, OMEGA_MAX = 950.0, 5000.0
 GAMMA_MIN, GAMMA_MAX = 0.1, 5000.0
-MASS_MIN, MASS_MAX = 0.0001, 100.0
+MASS_MIN, MASS_MAX = 0.000001, 100.0
 MUTATE_OSCIS = False
 BEST_CHOICE = 0.3
 MUTATION_RATE = 0.7
 CROSSOVER = 0.75
+FIX_XX_OSCI = [3807.51, 2236.61, 0.04] if HELLER else [3807.51, 2236.61, 0.04]#ToDo: check osci for Heller
+FIX_YY_OSCI = [3582.16, 1527.42, 0.09] if HELLER else [3582.16, 1527.42, 0.09]#ToDo: check osci for Heller
 
 class Individual:
 
-    def __init__(self, num_oscis=6, params=None):
+    def __init__(self, params, mutate=True):
         """Initialize individual"""
         self.fitness = None
-        self.params=[]
-        self.num_oscis = num_oscis
-        #if len(params) > 0:
-        if params is not None:
+        self.params = []
+        self.num_oscis = int(len(params) / 3) 
+        if mutate:
             for i in range(len(params)):
-                self.params.append(params[i] * (1 + random.choice([-0.05, 0.05])))
+                self.params.append(params[i] * (1 + random.choice([-0.01, 0.01])))
         else:
-            for i in range(self.num_oscis):
-                self.params.append(random.uniform(OMEGA_MIN, OMEGA_MAX))
-                self.params.append(random.uniform(GAMMA_MIN, GAMMA_MAX))
-                self.params.append(random.uniform(MASS_MIN, MASS_MAX))
-    
+            self.params = params
+  
 
-    def evaluate(self, x_data, target_data):
+    def evaluate(self, x_data, target_data, fit_reference):
         """Calculates fitness value for individual"""
         self.fitness = 0
-        amp, phase = calc_frf(x_data, self.params)
+        if self.num_oscis == 4:
+            fix_osci = np.array(FIX_XX_OSCI)
+        else:
+            fix_osci = np.array(FIX_YY_OSCI)
+        tmp_params = np.concatenate([self.params, fix_osci])
+        amp, phase = calc_frf(x_data, tmp_params)
         amp_fit = np.sum((target_data[0] - amp)**2)
         ph_fit = np.sum((target_data[1] - phase)**2) / 100000
-        self.fitness = amp_fit + ph_fit
+        self.fitness = amp_fit  + ph_fit
 
 
     def mutate(self, rate):
@@ -51,20 +56,15 @@ class Individual:
             #mutate per osci
             for i in range(self.num_oscis):
                 if (random.choice([0.0, 1.0]) < rate):
-                    #self.params[i*3] = max(OMEGA_MIN ,min(OMEGA_MAX, random.uniform(-50.0, 50.0)  + self.params[i*3]))
-                    #self.params[(i*3)+1] = max(GAMMA_MIN, min(GAMMA_MAX, random.uniform(0.9, 1.1)  * self.params[(i*3)+1]))
-                    #self.params[(i*3)+2] = max(MASS_MIN, min(MASS_MAX, random.uniform(0.9, 1.1) * self.params[(i*3)+2]))
-                    self.params[i*3] = max(OMEGA_MIN ,min(OMEGA_MAX, random.uniform(-5.0, 5.0)  + self.params[i*3]))
+                    self.params[i*3] = max(x_range[0] ,min(x_range[1], random.uniform(-2.0, 2.0)  + self.params[i*3]))
                     self.params[(i*3)+1] = max(GAMMA_MIN, min(GAMMA_MAX, random.uniform(0.98, 1.02)  * self.params[(i*3)+1]))
                     self.params[(i*3)+2] = max(MASS_MIN, min(MASS_MAX, random.uniform(0.98, 1.02) * self.params[(i*3)+2]))
-                    #self.params[(i*3)+1] = max(GAMMA_MIN, min(GAMMA_MAX, random.choice([1.02, 0.98])  * self.params[(i*3)+1]))
-                    #self.params[(i*3)+2] = max(MASS_MIN, min(MASS_MAX, random.choice([1.02, 0.98]) * self.params[(i*3)+2]))
         else:
             #mutate each param seperate
             for i in range(len(self.params)):
                 if (random.choice([0.0, 1.0]) < rate):
-                    if i % 3 == 0:#omega +/- max 10 Hz
-                        self.params[i] = max(OMEGA_MIN, min(OMEGA_MAX, random.uniform(-5.0, 5.0)  + self.params[i])) 
+                    if i % 3 == 0:#omega +/- max 0.5 Hz
+                        self.params[i] = max(x_range[0], min(x_range[1], random.uniform(-0.5, 0.5)  + self.params[i])) 
                     if i % 3 == 1:#gamma +/- 2%
                         self.params[i] = max(GAMMA_MIN, min(GAMMA_MAX, random.choice([1.02, 0.98])  * self.params[i]))
                     if i % 3 == 2:#mass +/- 2%
@@ -83,24 +83,20 @@ class Individual:
                 new_params.append(ind2.params[(i*3)])
                 new_params.append(ind2.params[(i*3)+1])
                 new_params.append(ind2.params[(i*3)+2]) 
-        return Individual(self.num_oscis, new_params)
-     
+        return Individual(new_params, mutate=False)
 
-    # def write_params(self, filename):
-    #     """writes parameter in file"""
-    #     with open(filename, 'w') as out:
-    #         for i in range(self.num_oscis):
-    #             out.write('{:5.6f}, {:5.6f}, {:5.6f}\n'.format(self.params[i*3], self.params[(i*3)+1], self.params[(i*3)+2]))   
 
     def write_params(self, filename):
+        """Write oscillator parameter in file"""
         with open (filename, 'w') as out:
             out.write('XX:\n')
             for i in range(self.num_oscis):
                 out.write('  - {{ freq: {:4.2f}, gamma: {:4.3f}, mass: {:4.6f} }}\n'.format(self.params[i*3], self.params[(i*3)+1], self.params[(i*3)+2]))
+            out.write('  - {{ freq: {:4.2f}, gamma: {:4.3f}, mass: {:4.6f} }}\n'.format(FIX_XX_OSCI[0], FIX_XX_OSCI[1], FIX_XX_OSCI[2]))
             out.write('YY:\n')
             for i in range(self.num_oscis):
                 out.write('  - {{ freq: {:4.2f}, gamma: {:4.3f}, mass: {:4.6f} }}\n'.format(self.params[i*3], self.params[(i*3)+1], self.params[(i*3)+2]))
-
+            out.write('  - {{ freq: {:4.2f}, gamma: {:4.3f}, mass: {:4.6f} }}\n'.format(FIX_YY_OSCI[0], FIX_YY_OSCI[1], FIX_YY_OSCI[2]))
 
 
     def print_params(self):
@@ -114,11 +110,12 @@ class Population:
 
     def __init__(self, size, x_data, target_data, initial_osci):
         """initialize population"""
-        num_oscis = int(len(initial_osci)/3)
+        self.num_oscis = int(len(initial_osci)/3)
+        self.fit_reference = initial_osci
         self.size = size
-        self.individuals = [Individual(num_oscis, initial_osci) for _ in range(size-1)]
-        initial = Individual(num_oscis, initial_osci)
-        initial.evaluate(x_data, target_data)
+        self.individuals = [Individual(initial_osci) for _ in range(size-1)]
+        initial = Individual(initial_osci, mutate=False)
+        initial.evaluate(x_data, target_data, self.fit_reference)
         self.individuals.append(initial)
         self.best = []
         self.best.append(initial)
@@ -140,7 +137,7 @@ class Population:
     def evaluate(self):
         """evaluate fitness values"""
         for ind in self.individuals:
-            ind.evaluate(self.x_data, self.target_data)
+            ind.evaluate(self.x_data, self.target_data, self.fit_reference)
 
 
     def choice_best(self):
@@ -184,7 +181,12 @@ class Population:
     
     def updatePlot(self, generation):
         """update InteractivePlotter"""
-        amp, phase = calc_frf(self.x_data, self.best[-1].params)
+        if self.num_oscis == 4:
+            fix_osci = np.array(FIX_XX_OSCI)
+        else:
+            fix_osci = np.array(FIX_YY_OSCI)
+        tmp_params = np.concatenate([self.best[-1].params, fix_osci])
+        amp, phase = calc_frf(self.x_data, tmp_params)
         self.plotter.update_plot(np.array([amp, phase]), self.target_data)
 
 
